@@ -42,8 +42,8 @@ class _MainScreenState extends State<MainScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildNavItem(Icons.home_rounded, 'Home', 0),
-            _buildNavItem(Icons.dashboard_customize_rounded, 'Template', 1),
-            _buildNavItem(Icons.qr_code_scanner_rounded, 'Editor', 2),
+            _buildNavItem(Icons.qr_code_scanner_rounded, 'Editor', 1),
+            _buildNavItem(Icons.dashboard_customize_rounded, 'Template', 2),
             _buildNavItem(Icons.analytics_rounded, 'Analytics', 3),
           ],
         ),

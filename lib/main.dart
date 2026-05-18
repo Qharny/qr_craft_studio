@@ -17,7 +17,7 @@ class QRCraftStudioApp extends StatelessWidget {
     return MaterialApp(
       title: 'QR Craft Studio',
       theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
     );
