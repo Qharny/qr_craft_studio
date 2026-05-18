@@ -9,12 +9,23 @@ import 'package:qr_craft_studio/screens/analytics_screen.dart';
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
+  static void switchToTab(BuildContext context, int index) {
+    final state = context.findAncestorStateOfType<_MainScreenState>();
+    state?.changeTab(index);
+  }
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+
+  void changeTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   final List<Widget> _pages = [
     const HomeScreen(),
