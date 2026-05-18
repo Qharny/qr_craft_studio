@@ -14,8 +14,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const QRCraftStudioApp());
 
-    // Verify that our app header displays properly.
-    expect(find.text('QR Craft Studio'), findsOneWidget);
-    expect(find.text('Welcome Back'), findsOneWidget);
+    // Verify that our app launches into the Splash Screen with the loading message.
+    expect(find.text('Crafting your digital gateway...'), findsOneWidget);
   });
 }
