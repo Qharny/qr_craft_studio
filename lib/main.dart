@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:qr_craft_studio/core/services/storage_service.dart';
 import 'package:qr_craft_studio/core/theme/app_theme.dart';
 import 'package:qr_craft_studio/screens/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
   runApp(const QRCraftStudioApp());
 }
 

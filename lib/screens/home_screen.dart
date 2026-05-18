@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:qr_craft_studio/core/services/storage_service.dart';
 import 'package:qr_craft_studio/core/theme/app_theme.dart';
 import 'package:qr_craft_studio/models/qr_category.dart';
 import 'package:qr_craft_studio/models/qr_project.dart';
@@ -11,12 +12,6 @@ import 'package:qr_craft_studio/widgets/template_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  static const List<QRProject> _recentProjects = [
-    QRProject(label: 'Portfolio Link', qrColor: AppColors.primary),
-    QRProject(label: 'Studio WiFi', qrColor: Colors.white),
-    QRProject(label: 'Coffee Menu', qrColor: AppColors.secondary),
-  ];
 
   static const List<QRCategory> _categories = [
     QRCategory(label: 'Link', icon: Icons.link_rounded),
@@ -41,6 +36,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final List<QRProject> projects = StorageService.getProjects();
 
     return Scaffold(
       floatingActionButton: Container(
@@ -266,13 +262,22 @@ class HomeScreen extends StatelessWidget {
                     // Horizontal list of recent codes matching design
                     SizedBox(
                       height: 145,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _recentProjects.length,
-                        itemBuilder: (context, index) {
-                          return RecentQRItem(project: _recentProjects[index]);
-                        },
-                      ),
+                      child: projects.isEmpty
+                          ? Center(
+                              child: Text(
+                                'No custom QRs yet. Go to Editor to craft one!',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: projects.length,
+                              itemBuilder: (context, index) {
+                                return RecentQRItem(project: projects[index]);
+                              },
+                            ),
                     ).animate().fadeIn(delay: 400.ms, duration: 450.ms).slideX(begin: 0.05),
                     const SizedBox(height: 28),
 

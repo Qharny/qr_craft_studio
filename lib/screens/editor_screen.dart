@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:qr_craft_studio/core/services/storage_service.dart';
 import 'package:qr_craft_studio/core/theme/app_theme.dart';
+import 'package:qr_craft_studio/models/qr_project.dart';
 
 class EditorScreen extends StatefulWidget {
   const EditorScreen({super.key});
@@ -115,6 +117,87 @@ class _EditorScreenState extends State<EditorScreen> {
         return 'https://wa.me/$phone?text=$msg';
       default:
         return 'https://qrcraft.studio';
+    }
+  }
+
+  // Interactive Save Dialog writing directly to local SharedPreferences
+  Future<void> _saveProjectToLocal() async {
+    final textTheme = Theme.of(context).textTheme;
+
+    final resultName = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final nameController = TextEditingController(
+          text: _activeType == 'URL'
+              ? 'My Website QR'
+              : 'My $_activeType QR',
+        );
+        return AlertDialog(
+          backgroundColor: AppColors.cardBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.border, width: 1.5),
+          ),
+          title: Text(
+            'Save QR Project',
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Give your custom QR layout design a name to retrieve it anytime from your local workspace library.',
+                style: textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 18),
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Project Name',
+                  hintText: 'Enter custom name...',
+                ),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(nameController.text.trim());
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (resultName == null) return; // User cancelled
+
+    final newProj = QRProject(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      label: resultName.isEmpty ? 'Untitled QR' : resultName,
+      type: _activeType,
+      data: _compiledQrData,
+      qrColorValue: _qrColor.value,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    await StorageService.saveProject(newProj);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"${newProj.label}" saved successfully to local library!'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     }
   }
 
@@ -357,28 +440,14 @@ class _EditorScreenState extends State<EditorScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Draft successfully updated!'),
-                            backgroundColor: AppColors.primary,
-                          ),
-                        );
-                      },
+                      onPressed: _saveProjectToLocal,
                       child: const Text('Save Draft'),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: FilledButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('QR Code successfully generated & saved to library!'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                      },
+                      onPressed: _saveProjectToLocal,
                       child: const Text('Export QR'),
                     ),
                   ),
