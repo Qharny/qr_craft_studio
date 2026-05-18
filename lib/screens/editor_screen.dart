@@ -1,6 +1,10 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:file_saver/file_saver.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:qr_craft_studio/core/services/storage_service.dart';
 import 'package:qr_craft_studio/core/theme/app_theme.dart';
 import 'package:qr_craft_studio/models/qr_project.dart';
@@ -13,6 +17,9 @@ class EditorScreen extends StatefulWidget {
 }
 
 class _EditorScreenState extends State<EditorScreen> {
+  // Screenshot controller for functional exporting & sharing
+  final ScreenshotController _screenshotController = ScreenshotController();
+
   // Active QR data type selection
   String _activeType = 'URL';
 
@@ -201,6 +208,73 @@ class _EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  // Functional PNG Image exporter using screenshot and file_saver
+  Future<void> _exportPng() async {
+    try {
+      final Uint8List? imageBytes = await _screenshotController.capture(
+        delay: const Duration(milliseconds: 50),
+      );
+      if (imageBytes == null) {
+        throw Exception("Failed to capture QR Code screenshot.");
+      }
+
+      final fileName = 'qr_craft_${DateTime.now().millisecondsSinceEpoch}';
+      
+      await FileSaver.instance.saveFile(
+        name: fileName,
+        bytes: imageBytes,
+        ext: 'png',
+        mimeType: MimeType.png,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('QR Code exported successfully as PNG to your files/gallery!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  // Functional system sharing sheet using screenshot and share_plus
+  Future<void> _shareQr() async {
+    try {
+      final Uint8List? imageBytes = await _screenshotController.capture(
+        delay: const Duration(milliseconds: 50),
+      );
+      if (imageBytes == null) {
+        throw Exception("Failed to capture QR Code screenshot.");
+      }
+
+      final fileName = 'qr_code_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      await Share.shareXFiles(
+        [XFile.fromData(imageBytes, mimeType: 'image/png', name: fileName)],
+        text: 'Crafted with QR Craft!',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sharing failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -232,41 +306,44 @@ class _EditorScreenState extends State<EditorScreen> {
             children: [
               // 1. REAL INTERACTIVE DYNAMIC QR CODE PREVIEW CONTAINER
               Center(
-                child: Container(
-                  width: 220,
-                  height: 220,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: _qrColor, width: 2.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _qrColor.withOpacity(0.12),
-                        blurRadius: 18,
-                        spreadRadius: 3,
-                      ),
-                    ],
-                  ),
+                child: Screenshot(
+                  controller: _screenshotController,
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    width: 220,
+                    height: 220,
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.cardBg,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: _qrColor, width: 2.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _qrColor.withOpacity(0.12),
+                          blurRadius: 18,
+                          spreadRadius: 3,
+                        ),
+                      ],
                     ),
-                    child: Center(
-                      child: PrettyQrView.data(
-                        data: _compiledQrData,
-                        decoration: PrettyQrDecoration(
-                          shape: const PrettyQrSmoothSymbol(
-                            roundFactor: 0.8,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: PrettyQrView.data(
+                          data: _compiledQrData,
+                          decoration: PrettyQrDecoration(
+                            shape: const PrettyQrSmoothSymbol(
+                              roundFactor: 0.8,
+                            ),
+                            image: _embedLogo
+                                ? const PrettyQrDecorationImage(
+                                    image: AssetImage('assets/logo.png'),
+                                    scale: 0.2,
+                                  )
+                                : null,
                           ),
-                          image: _embedLogo
-                              ? const PrettyQrDecorationImage(
-                                  image: AssetImage('assets/logo.png'),
-                                  scale: 0.2,
-                                )
-                              : null,
                         ),
                       ),
                     ),
@@ -436,19 +513,42 @@ class _EditorScreenState extends State<EditorScreen> {
               const SizedBox(height: 28),
 
               // 5. ACTION EXPORT BUTTONS
-              Row(
+              // 5. ACTION EXPORT & SHARING BUTTONS
+              Column(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _saveProjectToLocal,
-                      child: const Text('Save Draft'),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _saveProjectToLocal,
+                          child: const Text('Save Draft'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _exportPng,
+                          icon: const Icon(Icons.download_rounded, size: 18),
+                          label: const Text('Export PNG'),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: _saveProjectToLocal,
-                      child: const Text('Export QR'),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: FilledButton.icon(
+                      onPressed: _shareQr,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.share_rounded, size: 18),
+                      label: const Text('Share QR Code'),
                     ),
                   ),
                 ],
