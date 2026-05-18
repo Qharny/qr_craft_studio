@@ -15,7 +15,7 @@ class QRCraftStudioApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'QR Craft Studio',
+      title: 'QR Craft',
       theme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
