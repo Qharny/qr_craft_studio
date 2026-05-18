@@ -14,32 +14,32 @@ class _EditorScreenState extends State<EditorScreen> {
   // Active QR data type selection
   String _activeType = 'URL';
 
-  // Input Controllers for each data type
-  final _urlController = TextEditingController(text: 'https://qrcraft.studio');
-  final _textController = TextEditingController(text: 'Hello from QR Craft Studio!');
+  // Input Controllers for each data type (empty by default)
+  final _urlController = TextEditingController();
+  final _textController = TextEditingController();
   
-  final _emailRecipientController = TextEditingController(text: 'hello@qrcraft.studio');
-  final _emailSubjectController = TextEditingController(text: 'Feedback');
-  final _emailBodyController = TextEditingController(text: 'I love this app!');
+  final _emailRecipientController = TextEditingController();
+  final _emailSubjectController = TextEditingController();
+  final _emailBodyController = TextEditingController();
 
-  final _phoneController = TextEditingController(text: '+1234567890');
+  final _phoneController = TextEditingController();
 
-  final _wifiSsidController = TextEditingController(text: 'Studio WiFi');
-  final _wifiPasswordController = TextEditingController(text: 'craft123');
+  final _wifiSsidController = TextEditingController();
+  final _wifiPasswordController = TextEditingController();
   String _wifiSecurity = 'WPA'; // WPA, WEP, nopass
 
-  final _locLatitudeController = TextEditingController(text: '37.7749');
-  final _locLongitudeController = TextEditingController(text: '-122.4194');
+  final _locLatitudeController = TextEditingController();
+  final _locLongitudeController = TextEditingController();
 
-  final _contactNameController = TextEditingController(text: 'Qharny Creator');
-  final _contactOrgController = TextEditingController(text: 'QR Craft Studio');
-  final _contactPhoneController = TextEditingController(text: '+1234567890');
-  final _contactEmailController = TextEditingController(text: 'creator@qrcraft.studio');
-  final _contactAddressController = TextEditingController(text: 'San Francisco, CA');
-  final _contactWebController = TextEditingController(text: 'https://qrcraft.studio');
+  final _contactNameController = TextEditingController();
+  final _contactOrgController = TextEditingController();
+  final _contactPhoneController = TextEditingController();
+  final _contactEmailController = TextEditingController();
+  final _contactAddressController = TextEditingController();
+  final _contactWebController = TextEditingController();
 
-  final _waPhoneController = TextEditingController(text: '+1234567890');
-  final _waMessageController = TextEditingController(text: 'Hi! I styled this QR.');
+  final _waPhoneController = TextEditingController();
+  final _waMessageController = TextEditingController();
 
   // Design Customizations
   Color _qrColor = AppColors.primary;
@@ -68,7 +68,7 @@ class _EditorScreenState extends State<EditorScreen> {
     super.dispose();
   }
 
-  // Compile the QR data payload based on the selected type
+  // Compile the QR data payload based on the selected type with robust mock fallbacks
   String get _compiledQrData {
     switch (_activeType) {
       case 'URL':
@@ -76,21 +76,26 @@ class _EditorScreenState extends State<EditorScreen> {
         if (text.isEmpty) return 'https://qrcraft.studio';
         return text.startsWith('http://') || text.startsWith('https://') ? text : 'https://$text';
       case 'Text':
-        return _textController.text.isEmpty ? 'Empty Text' : _textController.text;
+        return _textController.text.isEmpty ? 'QR Craft Studio' : _textController.text;
       case 'Email':
         final recipient = _emailRecipientController.text.trim();
         final subject = Uri.encodeComponent(_emailSubjectController.text);
         final body = Uri.encodeComponent(_emailBodyController.text);
+        if (recipient.isEmpty) return 'mailto:hello@qrcraft.studio?subject=Hello&body=Hi';
         return 'mailto:$recipient?subject=$subject&body=$body';
       case 'Phone':
-        return 'tel:${_phoneController.text.trim()}';
+        final phone = _phoneController.text.trim();
+        if (phone.isEmpty) return 'tel:+1234567890';
+        return 'tel:$phone';
       case 'WiFi':
         final ssid = _wifiSsidController.text;
         final pass = _wifiPasswordController.text;
+        if (ssid.isEmpty) return 'WIFI:S:Studio_WiFi;T:WPA;P:password;;';
         return 'WIFI:S:$ssid;T:$_wifiSecurity;P:$pass;;';
       case 'Location':
         final lat = _locLatitudeController.text.trim();
         final lng = _locLongitudeController.text.trim();
+        if (lat.isEmpty || lng.isEmpty) return 'geo:37.7749,-122.4194';
         return 'geo:$lat,$lng';
       case 'Contact':
         final name = _contactNameController.text;
@@ -99,10 +104,14 @@ class _EditorScreenState extends State<EditorScreen> {
         final email = _contactEmailController.text;
         final addr = _contactAddressController.text;
         final web = _contactWebController.text;
+        if (name.isEmpty && phone.isEmpty) {
+          return 'BEGIN:VCARD\nVERSION:3.0\nN:Qharny Creator\nORG:QR Craft\nTEL:+1234567890\nEMAIL:creator@qrcraft.studio\nEND:VCARD';
+        }
         return 'BEGIN:VCARD\nVERSION:3.0\nN:$name\nORG:$org\nTEL:$phone\nEMAIL:$email\nADR:$addr\nURL:$web\nEND:VCARD';
       case 'WhatsApp':
         final phone = _waPhoneController.text.trim().replaceAll('+', '');
         final msg = Uri.encodeComponent(_waMessageController.text);
+        if (phone.isEmpty) return 'https://wa.me/1234567890?text=Hello';
         return 'https://wa.me/$phone?text=$msg';
       default:
         return 'https://qrcraft.studio';
