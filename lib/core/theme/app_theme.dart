@@ -199,7 +199,7 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.cardBg.withOpacity(0.5),
         hintStyle: GoogleFonts.inter(
-          color: AppColors.textMuted,
+          color: AppColors.textSecondary.withOpacity(0.28),
           fontSize: 14,
         ),
         prefixIconColor: AppColors.textSecondary,

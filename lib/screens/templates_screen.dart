@@ -170,12 +170,12 @@ class TemplatesScreen extends StatelessWidget {
                             size: 20,
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: TextField(
                               decoration: InputDecoration(
                                 hintText: 'Search premium templates...',
                                 hintStyle: TextStyle(
-                                  color: AppColors.textSecondary,
+                                  color: AppColors.textSecondary.withOpacity(0.28),
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
