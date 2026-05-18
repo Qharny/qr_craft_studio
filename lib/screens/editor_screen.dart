@@ -179,9 +179,9 @@ class _EditorScreenState extends State<EditorScreen> {
                             roundFactor: 0.8,
                           ),
                           image: _embedLogo
-                              ? PrettyQrDecorationImage(
-                                  image: const AssetImage('assets/logo.png'),
-                                  scale: 3.5,
+                              ? const PrettyQrDecorationImage(
+                                  image: AssetImage('assets/logo.png'),
+                                  scale: 0.2,
                                 )
                               : null,
                         ),
