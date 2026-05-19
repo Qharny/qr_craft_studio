@@ -21,7 +21,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  void changeTab(int index) {
+  void changeTab(int index) { 
     setState(() {
       _currentIndex = index;
     });
